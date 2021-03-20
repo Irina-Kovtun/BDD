@@ -13,7 +13,7 @@ import static com.codeborne.selenide.Selenide.$$;
 public class DashboardPage {
     private SelenideElement heading = $("[data-test-id=dashboard]");
     private ElementsCollection cards = $$(".list__item");
-    private ElementsCollection uploadButton = $$("[data-test-id=action-deposit]");
+//    private ElementsCollection uploadButton = $$("[data-test-id=action-deposit]");
     private final String balanceStart = "баланс: ";
     private final String balanceFinish = " р.";
 
@@ -21,30 +21,17 @@ public class DashboardPage {
         heading.shouldBe(Condition.visible);
     }
 
-    public int getFirstCardBalance() {
-        val text = cards.first().text();
-        return exactBalance(text);
-    }
-
-    public int getSecondCardBalance() {
-        val text = cards.last().text();
-        return exactBalance(text);
-    }
-
-    private int exactBalance(String text) {
-        val start = text.indexOf(balanceStart);
-        val finish = text.indexOf(balanceFinish);
-        val value = text.substring(start + balanceStart.length(), finish).trim();
+    public int getCardsBalance(String lastDigits) {
+        val balance = cards.findBy(Condition.text(lastDigits)).text();
+        val start = balance.indexOf(balanceStart);
+        val finish = balance.indexOf(balanceFinish);
+        val value = balance.substring(start + balanceStart.length(), finish).trim();
         return Integer.parseInt(value);
     }
 
-    public UploadPage moneyTransferToFirstCardClick() {
-        uploadButton.first().click();
-        return new UploadPage();
-    }
-
-    public UploadPage moneyTransferToSecondCardClick() {
-        uploadButton.last().click();
+    public UploadPage moneyTransferClickButton(String lastDigits) {
+        val uploadButton = cards.findBy(Condition.text(lastDigits)).$("[data-test-id=action-deposit]");
+        uploadButton.click();
         return new UploadPage();
     }
 }

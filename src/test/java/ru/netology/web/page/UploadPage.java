@@ -18,9 +18,9 @@ public class UploadPage {
         addMoneyHeading.shouldBe(Condition.visible, ofSeconds(10));
     }
 
-    public DashboardPage shouldTransferMoneyBetweenCards(int amount, DataHelper.CardNumber fromCardNumber) {
+    public DashboardPage shouldTransferMoneyBetweenCards(int amount, String cardFrom) {
         amountField.setValue(String.valueOf(amount));
-        fromField.setValue(fromCardNumber.getCardNumber());
+        fromField.setValue(cardFrom);
         uploadButton.click();
         return new DashboardPage();
     }
