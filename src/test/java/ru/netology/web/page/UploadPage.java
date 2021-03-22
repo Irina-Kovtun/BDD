@@ -2,6 +2,7 @@ package ru.netology.web.page;
 
 import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.SelenideElement;
+import org.openqa.selenium.Keys;
 import ru.netology.web.data.DataHelper;
 
 import static com.codeborne.selenide.Selectors.withText;
@@ -19,7 +20,9 @@ public class UploadPage {
     }
 
     public DashboardPage shouldTransferMoneyBetweenCards(int amount, String cardFrom) {
+        amountField.sendKeys(Keys.chord(Keys.CONTROL, "a") + Keys.BACK_SPACE);
         amountField.setValue(String.valueOf(amount));
+        fromField.sendKeys(Keys.chord(Keys.CONTROL, "a") + Keys.BACK_SPACE);
         fromField.setValue(cardFrom);
         uploadButton.click();
         return new DashboardPage();

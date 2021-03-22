@@ -3,6 +3,8 @@ package ru.netology.web.page;
 import com.codeborne.selenide.SelenideElement;
 import ru.netology.web.data.DataHelper;
 
+import static com.codeborne.selenide.Condition.*;
+import static com.codeborne.selenide.Selectors.withText;
 import static com.codeborne.selenide.Selenide.$;
 
 public class LoginPage {
@@ -15,6 +17,12 @@ public class LoginPage {
         passwordField.setValue(info.getPassword());
         loginButton.click();
         return new VerificationPage();
+    }
+
+    public void invalidLogin(DataHelper.AuthInfo info) {
+        loginField.setValue(info.getLogin());
+        passwordField.setValue(info.getPassword());
+        loginButton.click();
     }
 }
 
