@@ -9,10 +9,13 @@ import ru.netology.web.page.LoginPage;
 import ru.netology.web.page.UploadPage;
 import ru.netology.web.page.VerificationPage;
 
+import java.time.Duration;
+
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
 import static com.codeborne.selenide.Selenide.$;
 import static com.codeborne.selenide.Selenide.open;
+import static com.codeborne.selenide.Selenide.back;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class MoneyTransferTest {
@@ -59,37 +62,36 @@ public class MoneyTransferTest {
     @Test
     void shouldFailToAuthorizeWithInvalidAuthData() {
         val loginPage = new LoginPage();
-        val authInfo = DataHelper.getOtherAuthInfo(DataHelper.getAuthInfo());
-        loginPage.invalidLogin(authInfo);
-        $("[data-test-id=error-notification]").shouldBe(visible);
-        $("[data-test-id=error-notification]>.notification__title")
-                .shouldHave(text("Ошибка"));
-        $("[data-test-id=error-notification]>.notification__content")
-                .shouldHave(text("Неверно указан логин или пароль"));
+        val badAuthInfo = DataHelper.getOtherAuthInfo(DataHelper.getAuthInfo());
+        loginPage.invalidLogin(badAuthInfo);
     }
+
     @Test
     void shouldFailToAuthorizeWithInvalidVerificationCode() {
         val loginPage = new LoginPage();
         val authInfo = DataHelper.getAuthInfo();
         val verificationPage = loginPage.validLogin(authInfo);
-        val verificationCode = DataHelper.getOtherVerificationCodeFor(authInfo);
-        verificationPage.invalidVerify(verificationCode);
-        $("[data-test-id=error-notification]").shouldBe(visible);
-        $("[data-test-id=error-notification]>.notification__title")
-                .shouldHave(text("Ошибка"));
-        $("[data-test-id=error-notification]>.notification__content")
-                .shouldHave(text("Ошибка! \nНеверно указан код! Попробуйте ещё раз."));
+        val badVerificationCode = DataHelper.getOtherVerificationCodeFor(authInfo);
+        verificationPage.invalidVerify(badVerificationCode);
     }
 
-    //следующий тест требует предварительного устранения бага в приложении - при переводе сверх лимита карта уходит в отрицательный баланс
-//    void shouldFailToTransferMoneyFromFirstCardToSecondIfOutOfLimit() {
-    //загружаем личный кабинет используя валидные данные и получаем рандомные карты для транзакций
-//    val dashboardPage = validAuthorithation();
-//    val cardPlusFull = DataHelper.findCardPlus();
-//    val cardMinusFull = DataHelper.findCardMinus(cardPlusFull);
-//    //производим между выбранными картами перевод рандомной суммы в пределах суммы, имеющейся на карте
-//    val initialBalanceCardPlus = dashboardPage.getCardsBalance(DataHelper.getLastDigits(cardPlusFull));
-//    val initialBalanceCardMinus = dashboardPage.getCardsBalance(DataHelper.getLastDigits(cardMinusFull));
-//    val uploadAmount = DataHelper.generateTransferAmountOutLimit(initialBalanceCardMinus);
-
+    @Test
+    void shouldFailToTransferMoneyFromFirstCardToSecondIfOutOfLimit() {
+        //загружаем личный кабинет используя валидные данные и получаем рандомные карты для транзакций
+        val dashboardPage = validAuthorithation();
+        val cardPlusFull = DataHelper.findCardPlus();
+        val cardMinusFull = DataHelper.findCardMinus(cardPlusFull);
+//    производим между выбранными картами перевод рандомной суммы за пределами баланса карты, с которой производится перевод
+        val initialBalanceCardPlus = dashboardPage.getCardsBalance(DataHelper.getLastDigits(cardPlusFull));
+        val initialBalanceCardMinus = dashboardPage.getCardsBalance(DataHelper.getLastDigits(cardMinusFull));
+        val uploadAmount = DataHelper.generateTransferAmountOutLimit(initialBalanceCardMinus);
+        val uploadPage = dashboardPage.moneyTransferClickButton(DataHelper.getLastDigits(cardPlusFull));
+        uploadPage.shouldWarnThatTransferAmountIsOutOfLimit(uploadAmount, cardMinusFull);
+        setUp();
+        val dashboardPage2 = validAuthorithation();
+        val actualBalanceCardPlus = dashboardPage2.getCardsBalance(DataHelper.getLastDigits(cardPlusFull));
+        val actualBalanceCardMinus = dashboardPage2.getCardsBalance(DataHelper.getLastDigits(cardMinusFull));
+        assertEquals(initialBalanceCardPlus, actualBalanceCardPlus);
+        assertEquals(initialBalanceCardMinus, actualBalanceCardMinus);
+    }
 }
